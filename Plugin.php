@@ -54,6 +54,7 @@ class Plugin extends PluginBase
             'TxButton\App\Components\Dashboard' => 'dashboard',
             'TxButton\App\Components\UserSettings' => 'userSettings',
             'TxButton\App\Components\WalletSettings' => 'walletSettings',
+            'TxButton\App\Components\PosTerminal' => 'posTerminal',
         ];
     }
 

@@ -16,6 +16,7 @@ class CreateUserSettingsTable extends Migration
             $table->integer('require_confirm')->default(0);
             $table->string('pos_username')->nullable();
             $table->string('pos_pin')->nullable();
+            $table->string('pos_hash', 40)->nullable()->index();
             $table->timestamps();
         });
     }

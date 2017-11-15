@@ -54,6 +54,41 @@ class UserSetting extends Model
         return $setting;
     }
 
+    public function beforeSave()
+    {
+        if ($this->isDirty('pos_pin')) {
+            $this->pos_hash = md5(uniqid('pos', microtime()));
+        }
+    }
+
+    public function getPosHash()
+    {
+        if (!$this->pos_hash) {
+            $this->pos_hash = md5(uniqid('pos', microtime()));
+            $this->forceSave();
+        }
+
+        return $this->pos_hash;
+    }
+
+    /**
+     * Checks the given persist code.
+     * @param string $posHash
+     * @return bool
+     */
+    public function checkPosHash($posHash)
+    {
+        if (!$this->isPosConfigured()) {
+            return false;
+        }
+
+        if (!$posHash || !$this->pos_hash) {
+            return false;
+        }
+
+        return $posHash == $this->pos_hash;
+    }
+
     public function isPosConfigured()
     {
         return strlen(trim($this->pos_username)) && strlen(trim($this->pos_pin));
