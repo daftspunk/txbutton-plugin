@@ -1,0 +1,6 @@
+1.0.1: First version of App
+1.0.2:
+    - Create tables
+    - create_sales_table.php
+    - create_wallets_table.php
+    - create_user_settings_table.php
