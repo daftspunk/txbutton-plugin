@@ -13,7 +13,16 @@ class PosAuthManager
 
     protected $user;
 
-    protected $sessionKey = 'txbutton_pos_auth';
+    protected $sessionKey = 'txbutton_pos_auth5';
+
+    /**
+     * Finds a user by the login value.
+     * @param string $login
+     */
+    public function findUserByLogin($login)
+    {
+        return UserSettingModel::where('pos_username', $login)->first();
+    }
 
     public function authenticate(array $credentials, $remember = true)
     {
@@ -25,7 +34,7 @@ class PosAuthManager
             throw new AuthException('The pin attribute is required.');
         }
 
-        $user = UserSettingModel::where('pos_username', $username)->first();
+        $user = $this->findUserByLogin($username);
 
         if (!$user) {
             throw new AuthException('A user was not found with the given credentials.');
@@ -53,6 +62,17 @@ class PosAuthManager
         if ($remember) {
             Cookie::queue(Cookie::forever($this->sessionKey, $toPersist));
         }
+    }
+
+    /**
+     * Logs the current user out.
+     */
+    public function logout()
+    {
+        $this->user = null;
+
+        Session::forget($this->sessionKey);
+        Cookie::queue(Cookie::forget($this->sessionKey));
     }
 
     public function check()

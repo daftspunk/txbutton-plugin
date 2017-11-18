@@ -23,8 +23,19 @@ class Dashboard extends ComponentBase
 
     public function onRun()
     {
+        $this->prepareVars();
+    }
+
+    protected function prepareVars()
+    {
         $this->page['settings'] = $this->settings();
         $this->page['wallet'] = $this->wallet();
+
+        if ($settings = $this->settings()) {
+            $this->page['settings'] = $settings;
+            $this->page['posConfigured'] = $settings->isPosConfigured();
+            $this->page['posUrl'] = $this->pageUrl('pos', ['username' => $settings->pos_username]);
+        }
     }
 
     public function user()
@@ -71,10 +82,6 @@ class Dashboard extends ComponentBase
 
     public function onLaunchPos()
     {
-        if ($settings = $this->settings()) {
-            $this->page['settings'] = $settings;
-            $this->page['posConfigured'] = $settings->isPosConfigured();
-            $this->page['posUrl'] = $this->pageUrl('pos', ['username' => $settings->username]);
-        }
+        $this->prepareVars();
     }
 }
