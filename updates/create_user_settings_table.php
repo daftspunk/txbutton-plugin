@@ -17,6 +17,7 @@ class CreateUserSettingsTable extends Migration
             $table->string('pos_username')->nullable();
             $table->string('pos_pin')->nullable();
             $table->string('pos_hash', 40)->nullable()->index();
+            $table->integer('total_sales')->default(0);
             $table->timestamps();
         });
     }

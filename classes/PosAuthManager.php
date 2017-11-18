@@ -106,7 +106,7 @@ class PosAuthManager
             /*
              * Confirm the persistence code is valid, otherwise reject
              */
-            if (!$user->checkPosHash($posHash)) {
+            if (!$user || !$user->checkPosHash($posHash)) {
                 return false;
             }
 

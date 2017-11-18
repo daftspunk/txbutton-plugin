@@ -42,7 +42,7 @@ class WalletSettings extends ComponentBase
             return null;
         }
 
-        return WalletModel::applyUser($user)->applyActive()->first();
+        return WalletModel::findActive($user);
     }
 
     public function onReplaceKey()

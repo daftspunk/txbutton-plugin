@@ -1,5 +1,6 @@
-<?php namespace Txbutton\App\Models;
+<?php namespace TxButton\App\Models;
 
+use Db;
 use Model;
 use TxButton\App\Classes\HdWallet;
 use RainLab\User\Models\User as UserModel;
@@ -31,6 +32,11 @@ class Wallet extends Model
         'user' => UserModel::class
     ];
 
+    public static function findActive(UserModel $user)
+    {
+        return static::applyUser($user)->applyActive()->first();
+    }
+
     public function scopeApplyUser($query, UserModel $user)
     {
         return $query->where('user_id', $user->id);
@@ -56,6 +62,20 @@ class Wallet extends Model
     public function beforeCreate()
     {
         $this->generateHash();
+    }
+
+    public function bumpAddressIndex()
+    {
+        Db::table('txbutton_app_wallets')->where('id', $this->id)->increment('last_address_index');
+
+        return $this->last_address_index;
+    }
+
+    public function generateWalletAddress($index)
+    {
+        $wallet = new HdWallet;
+        $wallet->setXpub($this->xpub);
+        return $wallet->addressFromXpub('0/'.$index);
     }
 
     /**

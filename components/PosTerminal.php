@@ -5,6 +5,9 @@ use Currency;
 use Redirect;
 use Cms\Classes\ComponentBase;
 use TxButton\App\Classes\PosAuthManager;
+use TxButton\App\Models\Sale as SaleModel;
+use TxButton\App\Models\Wallet as WalletModel;
+use ApplcationException;
 use ValidationException;
 
 class PosTerminal extends ComponentBase
@@ -38,6 +41,7 @@ class PosTerminal extends ComponentBase
     {
         $this->page['posUsername'] = $this->posUsername();
         $this->page['posUser'] = $this->posUser();
+        $this->page['posWallet'] = $this->posWallet();
         $this->page['slideMode'] = $this->detectSlideMode();
     }
 
@@ -62,6 +66,24 @@ class PosTerminal extends ComponentBase
     public function posUser()
     {
         return $this->authManager->getUser();
+    }
+
+    public function user()
+    {
+        if (!$posUser = $this->posUser()) {
+            return null;
+        }
+
+        return $posUser->user;
+    }
+
+    public function posWallet()
+    {
+        if (!$user = $this->user()) {
+            return null;
+        }
+
+        return WalletModel::findActive($user);
     }
 
     public function onCheckUsername()
@@ -112,7 +134,22 @@ class PosTerminal extends ComponentBase
         $this->prepareVars();
         $this->setAmountsFromKeyPadValue();
 
-        $this->page['address'] = '...';
+        if (!$user = $this->user()) {
+            throw new ApplcationException('Invalid user account');
+        }
+
+        $options = [
+            'coinPrice' => $this->page['amountCoin'],
+            'fiatPrice' => $this->page['amount'],
+            'coinCurrency' => 'BCH',
+            'fiatCurrency' => 'AUD',
+        ];
+
+        $sale = SaleModel::raiseSale($user, $options);
+
+        $this->page['sale'] = $sale;
+        $this->page['saleIndex'] = $sale->sale_index;
+        $this->page['address'] = $sale->coin_address;
         $this->page['slideMode'] = 'transaction';
     }
 

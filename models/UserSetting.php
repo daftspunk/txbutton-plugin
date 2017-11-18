@@ -1,5 +1,6 @@
 <?php namespace Txbutton\App\Models;
 
+use Db;
 use Model;
 use RainLab\User\Models\User as UserModel;
 
@@ -40,6 +41,16 @@ class UserSetting extends Model
         'user' => UserModel::class
     ];
 
+    public static function findActive(UserModel $user)
+    {
+        return static::applyUser($user)->first();
+    }
+
+    public function scopeApplyUser($query, UserModel $user)
+    {
+        return $query->where('user_id', $user->id);
+    }
+
     public static function createForUser(UserModel $user)
     {
         $setting = static::firstOrCreate([
@@ -59,6 +70,13 @@ class UserSetting extends Model
         if ($this->isDirty('pos_pin')) {
             $this->pos_hash = md5(uniqid('pos', microtime()));
         }
+    }
+
+    public function bumpSaleIndex()
+    {
+        Db::table('txbutton_app_user_settings')->where('id', $this->id)->increment('total_sales');
+
+        return $this->total_sales + 1;
     }
 
     public function getPosHash()
