@@ -56,6 +56,7 @@ class UserSetting extends Model
         $setting = static::firstOrCreate([
             'user_id' => $user->id,
         ], [
+            'currency_symbol' => '$',
             'currency_code' => 'USD',
             'require_confirm' => 1,
         ]);

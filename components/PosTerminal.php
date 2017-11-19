@@ -43,6 +43,8 @@ class PosTerminal extends ComponentBase
         $this->page['posUser'] = $this->posUser();
         $this->page['posWallet'] = $this->posWallet();
         $this->page['slideMode'] = $this->detectSlideMode();
+        $this->page['currencyCode'] = $this->currencyCode();
+        $this->page['currencySymbol'] = $this->currencySymbol();
     }
 
     protected function detectSlideMode()
@@ -70,6 +72,15 @@ class PosTerminal extends ComponentBase
         }
 
         return $posUser->currency_code ?: 'USD';
+    }
+
+    public function currencySymbol()
+    {
+        if (!$posUser = $this->posUser()) {
+            return '$';
+        }
+
+        return $posUser->currency_symbol ?: '$';
     }
 
     public function posUser()

@@ -69,6 +69,12 @@ class UserSettings extends ComponentBase
         $settings = $this->settings();
 
         $settings->fill(post());
+
+        $currency = CurrencyModel::where('currency_code', post('currency_code'))->first();
+        if ($currency) {
+            $settings->currency_symbol = $currency->currency_symbol;
+        }
+
         $settings->save();
 
         Flash::success('Settings saved!');
