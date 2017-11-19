@@ -212,4 +212,25 @@ class PosTerminal extends ComponentBase
 
         return $amount;
     }
+
+    public function onLaunchSalesNotes()
+    {
+        if (!$sale = $this->findSaleFromHash()) {
+            throw new ApplicationException('Unable to find sale');
+        }
+
+        $this->page['sale'] = $sale;
+    }
+
+    public function onSaveSaleNotes()
+    {
+        if (!$sale = $this->findSaleFromHash()) {
+            throw new ApplicationException('Unable to find sale');
+        }
+
+        $sale->notes = post('notes');
+        $sale->save();
+
+        Flash::success('Notes updated');
+    }
 }
