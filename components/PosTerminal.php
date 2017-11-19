@@ -63,6 +63,15 @@ class PosTerminal extends ComponentBase
         return post('username', $this->param('username'));
     }
 
+    public function currencyCode()
+    {
+        if (!$posUser = $this->posUser()) {
+            return 'USD';
+        }
+
+        return $posUser->currency_code ?: 'USD';
+    }
+
     public function posUser()
     {
         return $this->authManager->getUser();
@@ -142,7 +151,7 @@ class PosTerminal extends ComponentBase
             'coinPrice' => $this->page['amountCoin'],
             'fiatPrice' => $this->page['amount'],
             'coinCurrency' => 'BCH',
-            'fiatCurrency' => 'AUD',
+            'fiatCurrency' => $this->currencyCode(),
         ];
 
         $sale = SaleModel::raiseSale($user, $options);
@@ -163,7 +172,12 @@ class PosTerminal extends ComponentBase
             throw new ValidationException(['keypad_value' => 'No amount entered']);
         }
 
-        $coinAmount = Currency::format($fiatAmount, ['from' => 'AUD', 'to' => 'BCH', 'decimals' => 8]);
+        $coinAmount = Currency::format($fiatAmount, [
+            'from' => $this->currencyCode(),
+            'to' => 'BCH',
+            'decimals' => 8
+        ]);
+
         $coinAmount = rtrim($coinAmount, '0');
 
         $this->page['amount'] = $fiatAmount;

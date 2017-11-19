@@ -30,7 +30,8 @@ class Dashboard extends ComponentBase
     protected function prepareVars()
     {
         $this->page['settings'] = $this->settings();
-        $this->page['wallet'] = $this->wallet();
+        $this->page['wallet'] = $wallet = $this->wallet();
+        $this->page['noWallet'] = !$wallet;
         $this->page['sales'] = $this->sales();
 
         if ($settings = $this->settings()) {
