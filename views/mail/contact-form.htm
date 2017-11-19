@@ -1,0 +1,16 @@
+subject = "Contact form submitted by: {{ name }}"
+layout = "system"
+==
+<p>
+    From: {{ name }} &lt;{{ email }}&gt;
+</p>
+<p>
+    Message Body:
+</p>
+<blockquote>
+    {{ comments }}
+</blockquote>
+<hr />
+<p>
+    This mail is sent via the contact form found on {{ site_name }}!
+</p>

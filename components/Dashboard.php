@@ -1,8 +1,9 @@
-<?php namespace Txbutton\App\Components;
+<?php namespace TxButton\App\Components;
 
 use Auth;
 use Flash;
 use Cms\Classes\ComponentBase;
+use TxButton\App\Models\Sale as SaleModel;
 use TxButton\App\Models\Wallet as WalletModel;
 use Txbutton\App\Models\UserSetting as UserSettingModel;
 
@@ -30,6 +31,7 @@ class Dashboard extends ComponentBase
     {
         $this->page['settings'] = $this->settings();
         $this->page['wallet'] = $this->wallet();
+        $this->page['sales'] = $this->sales();
 
         if ($settings = $this->settings()) {
             $this->page['settings'] = $settings;
@@ -41,6 +43,15 @@ class Dashboard extends ComponentBase
     public function user()
     {
         return Auth::getUser();
+    }
+
+    public function sales()
+    {
+        if (!$user = $this->user()) {
+            return null;
+        }
+
+        return SaleModel::applyUser($user)->orderBy('created_at', 'desc')->get();
     }
 
     public function wallet()

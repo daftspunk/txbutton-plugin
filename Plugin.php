@@ -55,6 +55,15 @@ class Plugin extends PluginBase
             'TxButton\App\Components\UserSettings' => 'userSettings',
             'TxButton\App\Components\WalletSettings' => 'walletSettings',
             'TxButton\App\Components\PosTerminal' => 'posTerminal',
+            'TxButton\App\Components\ButtonGenerator' => 'buttonGenerator',
+            'TxButton\App\Components\ContactForm' => 'contactForm',
+        ];
+    }
+
+    public function registerMailTemplates()
+    {
+        return [
+            'txbutton.app::mail.contact-form' => "Sent to the administrators when the provide feedback link is used.",
         ];
     }
 
