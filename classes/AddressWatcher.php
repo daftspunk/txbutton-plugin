@@ -28,6 +28,8 @@ class AddressWatcher
      */
     public function getBalance($address)
     {
+        return [0, 0]; // Testing
+
         $apiUrl = $this->blockExplorers[array_rand($this->blockExplorers)];
 
         $response = null;

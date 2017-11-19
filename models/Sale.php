@@ -11,6 +11,7 @@ use ApplicationException;
 class Sale extends Model
 {
     const STATUS_EMPTY = 'empty';
+    const STATUS_PARTIAL = 'partial';
     const STATUS_UNCONFIRMED = 'unconfirmed';
     const STATUS_CONFIRMED = 'confirmed';
     const STATUS_VOID = 'void';
@@ -37,6 +38,16 @@ class Sale extends Model
         'user' => UserModel::class,
         'wallet' => Wallet::class,
     ];
+
+    public function beforeCreate()
+    {
+        $this->generateHash();
+    }
+
+    public function scopeApplyUser($query, UserModel $user)
+    {
+        return $query->where('user_id', $user->id);
+    }
 
     public static function raiseSale(UserModel $user, $options = [])
     {
@@ -83,6 +94,8 @@ class Sale extends Model
     {
         list($balance, $unconfirmed) = AddressWatcher::instance()->getBalance($this->coin_address);
 
+        $confirmed = $balance - $unconfirmed;
+
         $toSave = false;
 
         if (!$this->is_permanent && $balance) {
@@ -90,19 +103,57 @@ class Sale extends Model
             $toSave = true;
         }
 
-        if (!$this->is_paid && $balance != $this->coin_balance) {
-            $this->coin_balance = $balance;
-            $toSave = true;
-        }
+        if (!$this->is_paid) {
+            if ($balance != $this->coin_balance) {
+                $this->coin_balance = $balance;
+                $toSave = true;
+            }
 
-        if (!$this->is_paid && $this->coin_balance >= $this->coin_price) {
-            $this->is_paid = true;
-            $this->paid_at = $this->freshTimestamp();
-            $toSave = true;
+            if ($confirmed != $this->coin_confirmed) {
+                $this->coin_confirmed = $confirmed;
+                $toSave = true;
+            }
+
+            if ($balance > 0 && $balance < $this->coin_price) {
+                $this->status_name = self::STATUS_PARTIAL;
+                $toSave = true;
+            }
+            elseif ($balance >= $this->coin_price) {
+                $this->status_name = self::STATUS_UNCONFIRMED;
+                $toSave = true;
+            }
+
+            if ($confirmed >= $this->coin_price) {
+                $this->status_name = self::STATUS_CONFIRMED;
+                $this->is_paid = true;
+                $this->paid_at = $this->freshTimestamp();
+                $toSave = true;
+            }
         }
 
         if ($toSave) {
             $this->save();
         }
+    }
+
+    /**
+     * Internal helper, and set generate a unique hash for this invoice.
+     * @return string
+     */
+    protected function generateHash()
+    {
+        $this->hash = $this->createHash();
+        while ($this->newQuery()->where('hash', $this->hash)->count() > 0) {
+            $this->hash = $this->createHash();
+        }
+    }
+
+    /**
+     * Internal helper, create a hash for this invoice.
+     * @return string
+     */
+    protected function createHash()
+    {
+        return md5(uniqid('sale', microtime()));
     }
 }

@@ -106,6 +106,6 @@ class Wallet extends Model
      */
     protected function createHash()
     {
-        return md5(uniqid('invoice', microtime()));
+        return md5(uniqid('wallet', microtime()));
     }
 }

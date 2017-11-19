@@ -7,7 +7,7 @@ use Cms\Classes\ComponentBase;
 use TxButton\App\Classes\PosAuthManager;
 use TxButton\App\Models\Sale as SaleModel;
 use TxButton\App\Models\Wallet as WalletModel;
-use ApplcationException;
+use ApplicationException;
 use ValidationException;
 
 class PosTerminal extends ComponentBase
@@ -135,7 +135,7 @@ class PosTerminal extends ComponentBase
         $this->setAmountsFromKeyPadValue();
 
         if (!$user = $this->user()) {
-            throw new ApplcationException('Invalid user account');
+            throw new ApplicationException('Invalid user account');
         }
 
         $options = [
@@ -151,6 +151,7 @@ class PosTerminal extends ComponentBase
         $this->page['saleIndex'] = $sale->sale_index;
         $this->page['address'] = $sale->coin_address;
         $this->page['slideMode'] = 'transaction';
+        $this->page['statusState'] = 'presend';
     }
 
     protected function setAmountsFromKeyPadValue()
@@ -167,5 +168,48 @@ class PosTerminal extends ComponentBase
 
         $this->page['amount'] = $fiatAmount;
         $this->page['amountCoin'] = $coinAmount;
+    }
+
+    public function onCheckPayment()
+    {
+        if (!$sale = $this->findSaleFromHash()) {
+            throw new ApplicationException('Unable to find sale');
+        }
+
+        $sale->checkBalance();
+
+        $this->page['sale'] = $sale;
+        $this->page['amountCoin'] = $this->formatNiceAmount($sale->coin_price);
+        $this->page['balance'] = $this->formatNiceAmount($sale->coin_balance);
+        $this->page['address'] = $sale->coin_address;
+    }
+
+    protected function findSaleFromHash($hash = null)
+    {
+        if (!$hash) {
+            $hash = post('sale_hash');
+        }
+
+        if (!$user = $this->user()) {
+            throw new ApplicationException('Invalid user account');
+        }
+
+        return SaleModel::applyUser($user)->where('hash', $hash)->first();
+    }
+
+    protected function formatNiceAmount($amount)
+    {
+        if (strpos($amount, '.') === false) {
+            $amount .= '.0';
+        }
+        else {
+            $amount = rtrim($amount, 0);
+
+            if (substr($amount, -1) == '.') {
+                $amount .= '0';
+            }
+        }
+
+        return $amount;
     }
 }

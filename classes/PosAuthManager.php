@@ -13,7 +13,7 @@ class PosAuthManager
 
     protected $user;
 
-    protected $sessionKey = 'txbutton_pos_auth5';
+    protected $sessionKey = 'txbutton_pos_auth7';
 
     /**
      * Finds a user by the login value.
