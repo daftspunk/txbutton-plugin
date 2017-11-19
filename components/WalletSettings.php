@@ -62,7 +62,6 @@ class WalletSettings extends ComponentBase
 
             $this->validateXpub($xpub);
 
-
             $wallet = WalletModel::createForUser($user, $xpub);
 
             $wallet->makeActive();

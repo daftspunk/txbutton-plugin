@@ -85,7 +85,19 @@ class PosTerminal extends ComponentBase
 
     public function posUser()
     {
-        return $this->authManager->getUser();
+        if (!$user = $this->authManager->getUser()) {
+            return null;
+        }
+
+        if (!$username = $this->posUsername()) {
+            return null;
+        }
+
+        if ($user->pos_username != $username) {
+            return null;
+        }
+
+        return $user;
     }
 
     public function user()

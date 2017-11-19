@@ -84,8 +84,8 @@ class Wallet extends Model
      */
     public function makeActive()
     {
-        $this->newQuery()->where('id', $this->id)->update(['is_active' => true]);
-        $this->newQuery()->where('id', '<>', $this->id)->update(['is_active' => false]);
+        $this->newQuery()->where('user_id', $this->user_id)->where('id', $this->id)->update(['is_active' => true]);
+        $this->newQuery()->where('user_id', $this->user_id)->where('id', '<>', $this->id)->update(['is_active' => false]);
     }
 
     /**
