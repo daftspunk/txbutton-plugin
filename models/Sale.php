@@ -14,7 +14,10 @@ class Sale extends Model
     const STATUS_PARTIAL = 'partial';
     const STATUS_UNCONFIRMED = 'unconfirmed';
     const STATUS_CONFIRMED = 'confirmed';
-    const STATUS_VOID = 'void';
+    const STATUS_ABANDONED = 'abandoned';
+
+    const SOURCE_POS = 'pos';
+    const SOURCE_WEB = 'web';
 
     /**
      * @var string The database table used by the model.
@@ -30,6 +33,11 @@ class Sale extends Model
      * @var array Fillable fields
      */
     protected $fillable = [];
+
+    /**
+     * @var array List of datetime attributes to convert to an instance of Carbon/DateTime objects.
+     */
+    protected $dates = ['abandon_at', 'checked_at', 'paid_at'];
 
     /**
      * @var array Relations
@@ -49,6 +57,48 @@ class Sale extends Model
         return $query->where('user_id', $user->id);
     }
 
+    public function scopeApplyPendingBalances($query)
+    {
+        return $query
+            ->where(function($q) {
+                $q->where('is_paid', 0);
+                $q->orWhereNull('is_paid');
+            })
+            ->where(function($q) {
+                $q->where('is_abandoned', 0);
+                $q->orWhereNull('is_abandoned');
+            })
+        ;
+    }
+
+    public function scopeFindReusableSale($query)
+    {
+        $query
+            ->where(function($q) {
+                $q->where('is_permanent', 0);
+                $q->orWhereNull('is_permanent');
+            })
+            ->where(function($q) {
+                $q->where('is_reused', 0);
+                $q->orWhereNull('is_reused');
+            })
+            ->where('is_abandoned', 1)
+        ;
+
+        return $query->first();
+    }
+
+    public function scopeApplyIpnUnsent($query)
+    {
+        return $query
+            ->where(function($q) {
+                $q->where('is_ipn_sent', 0);
+                $q->orWhereNull('is_ipn_sent');
+            })
+            ->where('is_paid', 1)
+        ;
+    }
+
     public static function raiseSale(UserModel $user, $options = [])
     {
         extract(array_merge([
@@ -56,6 +106,7 @@ class Sale extends Model
             'fiatPrice' => 0,
             'coinCurrency' => 'BCH',
             'fiatCurrency' => 'USD',
+            'source'       => self::SOURCE_POS
         ], $options));
 
         if (!$wallet = Wallet::findActive($user)) {
@@ -67,9 +118,10 @@ class Sale extends Model
         }
 
         $saleIndex = $settings->bumpSaleIndex();
-        $addressIndex = $wallet->bumpAddressIndex();
-        $address = $wallet->generateWalletAddress($addressIndex);
+        list($address, $addressIndex) = $wallet->generateWalletAddress();
         $exchangeRate = $coinPrice / $fiatPrice;
+
+        $needsIpn = $source == self::SOURCE_WEB;
 
         $sale = new self;
         $sale->coin_address = $address;
@@ -78,16 +130,55 @@ class Sale extends Model
         $sale->wallet_id = $wallet->id;
         $sale->user_id = $user->id;
         $sale->status_name = self::STATUS_EMPTY;
+        $sale->source_name = $source;
         $sale->is_paid = false;
         $sale->is_permanent = false;
+        $sale->is_ipn_sent = $needsIpn ? false : true;
+        $sale->is_abandoned = false;
         $sale->coin_price = $coinPrice;
         $sale->fiat_price = $fiatPrice;
         $sale->exchange_rate = $exchangeRate;
         $sale->coin_currency = $coinCurrency;
         $sale->fiat_currency = $fiatCurrency;
+        $sale->touchFromUser(false);
         $sale->save();
 
         return $sale;
+    }
+
+    public function touchFromUser($doSave = true)
+    {
+        $this->checked_at = $this->freshTimestamp();
+        $this->abandon_at = $this->freshAbandonTimestamp();
+
+        if ($doSave) {
+            $this->save();
+        }
+    }
+
+    public function freshAbandonTimestamp()
+    {
+        return $this->freshTimestamp()->addHours(2);
+    }
+
+    public function markAbandoned()
+    {
+        if (!$this->isAbandoned()) {
+            return;
+        }
+
+        $this->status_name = self::STATUS_ABANDONED;
+        $this->is_abandoned = true;
+        $this->save();
+    }
+
+    public function isAbandoned()
+    {
+        if (!$this->abandon_at) {
+            return false;
+        }
+
+        return $this->abandon_at->isPast();
     }
 
     public function checkBalance()
@@ -132,6 +223,7 @@ class Sale extends Model
         }
 
         if ($toSave) {
+            $this->abandon_at = $this->freshAbandonTimestamp();
             $this->save();
         }
     }

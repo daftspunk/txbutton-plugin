@@ -71,7 +71,24 @@ class Wallet extends Model
         return $this->last_address_index;
     }
 
-    public function generateWalletAddress($index)
+    public function generateWalletAddress()
+    {
+        if ($sale = Sale::findReusableSale()) {
+            $sale->is_reused = true;
+            $sale->save();
+
+            $addressIndex = $sale->address_index;
+            $address = $sale->coin_address;
+        }
+        else {
+            $addressIndex = $this->bumpAddressIndex();
+            $address = $this->makeWalletAddress($addressIndex);
+        }
+
+        return [$address, $addressIndex];
+    }
+
+    protected function makeWalletAddress($index)
     {
         $wallet = new HdWallet;
         $wallet->setXpub($this->xpub);

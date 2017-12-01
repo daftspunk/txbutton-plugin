@@ -17,6 +17,7 @@ class CreateSalesTable extends Migration
             $table->integer('sale_index');
             $table->integer('address_index');
             $table->string('status_name')->nullable();
+            $table->string('source_name')->nullable();
             $table->string('coin_address')->nullable();
             $table->decimal('coin_balance', 15, 8)->default(0);
             $table->decimal('coin_confirmed', 15, 8)->default(0);
@@ -25,12 +26,21 @@ class CreateSalesTable extends Migration
             $table->decimal('exchange_rate', 15, 8)->nullable();
             $table->string('coin_currency', 3)->nullable();
             $table->string('fiat_currency', 3)->nullable();
-            $table->boolean('is_paid')->nullable()->index();
-            // $table->boolean('is_confirmed')->nullable()->index();
-            $table->boolean('is_permanent')->nullable()->index();
+            $table->boolean('is_paid')->nullable();
+            $table->boolean('is_ipn_sent')->nullable();
+            $table->boolean('is_permanent')->nullable();
+            $table->boolean('is_abandoned')->nullable();
+            $table->boolean('is_reused')->nullable();
+            $table->timestamp('abandon_at')->nullable();
+            $table->timestamp('checked_at')->nullable();
             $table->timestamp('paid_at')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
+
+            // $table->index(['is_paid', 'is_abandoned'], 'paid_abandoned');
+            // $table->index(['is_paid', 'is_ipn_sent'], 'paid_ipn_sent');
+            $table->index(['user_id', 'is_permanent'], 'user_permanent');
+            $table->index(['wallet_id', 'is_abandoned'], 'wallet_abandoned');
         });
     }
 

@@ -30,7 +30,7 @@ class Plugin extends PluginBase
      */
     public function register()
     {
-
+        $this->registerConsoleCommand('button.run', 'TxButton\App\Console\ButtonRun');
     }
 
     /**
