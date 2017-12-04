@@ -15,6 +15,7 @@ class CreateUserSettingsTable extends Migration
             $table->string('currency_code', 3)->nullable();
             $table->string('currency_symbol', 3)->nullable();
             $table->integer('require_confirm')->default(0);
+            $table->string('web_id', 40)->nullable()->index();
             $table->string('pos_username')->nullable();
             $table->string('pos_pin')->nullable();
             $table->string('pos_hash', 40)->nullable()->index();

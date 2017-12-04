@@ -226,6 +226,8 @@ class Sale extends Model
             $this->abandon_at = $this->freshAbandonTimestamp();
             $this->save();
         }
+
+        return $toSave;
     }
 
     /**

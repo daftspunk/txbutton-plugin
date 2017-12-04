@@ -213,7 +213,9 @@ class PosTerminal extends ComponentBase
             throw new ApplicationException('Unable to find sale');
         }
 
-        $sale->checkBalance();
+        if (!$sale->checkBalance()) {
+            $sale->touchFromUser();
+        }
 
         $this->page['sale'] = $sale;
         $this->page['amountCoin'] = $this->formatNiceAmount($sale->coin_price);

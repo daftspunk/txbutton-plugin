@@ -36,9 +36,6 @@ class CreateSalesTable extends Migration
             $table->timestamp('paid_at')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
-
-            // $table->index(['is_paid', 'is_abandoned'], 'paid_abandoned');
-            // $table->index(['is_paid', 'is_ipn_sent'], 'paid_ipn_sent');
             $table->index(['user_id', 'is_permanent'], 'user_permanent');
             $table->index(['wallet_id', 'is_abandoned'], 'wallet_abandoned');
         });

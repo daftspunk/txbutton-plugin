@@ -80,6 +80,28 @@ class UserSetting extends Model
         return $this->total_sales + 1;
     }
 
+    /*
+     * @todo Make sure this is unique
+     */
+    public function getWebId()
+    {
+        if (!$this->web_id) {
+            $newId = crc32(uniqid('web', microtime()));
+
+            if ($newId < 0) {
+                $newId = $newId * -1;
+            }
+
+            $this->web_id = $newId;
+            $this->forceSave();
+        }
+
+        return $this->web_id;
+    }
+
+    /*
+     * @todo Make sure this is unique
+     */
     public function getPosHash()
     {
         if (!$this->pos_hash) {
