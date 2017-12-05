@@ -71,9 +71,13 @@ class Sale extends Model
         ;
     }
 
-    public function scopeFindReusableSale($query)
+    public function scopeApplyReusableSale($query, Wallet $wallet)
     {
-        $query
+        if (!$wallet) {
+            return $query->whereRaw('1 = 2');
+        }
+
+        return $query
             ->where(function($q) {
                 $q->where('is_permanent', 0);
                 $q->orWhereNull('is_permanent');
@@ -83,9 +87,9 @@ class Sale extends Model
                 $q->orWhereNull('is_reused');
             })
             ->where('is_abandoned', 1)
+            ->where('wallet_id', $wallet->id)
+            ->where('user_id', $wallet->user_id)
         ;
-
-        return $query->first();
     }
 
     public function scopeApplyIpnUnsent($query)

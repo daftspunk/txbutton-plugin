@@ -73,7 +73,7 @@ class Wallet extends Model
 
     public function generateWalletAddress()
     {
-        if ($sale = Sale::findReusableSale()) {
+        if ($sale = Sale::applyReusableSale($this)->first()) {
             $sale->is_reused = true;
             $sale->save();
 
