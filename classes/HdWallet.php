@@ -7,6 +7,17 @@ use BitWasp\Bitcoin\Key\Deterministic\MultisigHD;
 use BitWasp\Bitcoin\Network\NetworkFactory;
 use Exception;
 
+/*
+ * Require:
+ *
+ *    "bitwasp/bitcoin": "^0.0.34"
+ *
+ * Usage:
+ *
+ *     $wallet = new HdWallet;
+ *     $wallet->setXpub('...');
+ *     return $wallet->addressFromXpub('0/1');
+ */
 class HdWallet
 {
     protected $network = null;
